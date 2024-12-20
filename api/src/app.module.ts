@@ -1,7 +1,5 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
-import { AppController } from './app.controller';
-import { AppService } from './app.service';
 import { HttpModule } from '@nestjs/axios';
 import { utilities as nestWinstonModuleUtilities, WinstonModule } from 'nest-winston';
 import * as winston from 'winston';
@@ -33,8 +31,8 @@ import { WebhookController } from './webhook.controller';
     }),
     HttpModule
   ],
-  controllers: [AppController, WebhookController],
-  providers: [AppService],
+  controllers: [WebhookController],
+  providers: [],
   exports: []
 })
 export class AppModule {}
