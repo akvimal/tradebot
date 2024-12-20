@@ -1,0 +1,14 @@
+services:
+
+  api:
+    build:
+      dockerfile: Dockerfile
+      context: ./api
+    volumes:
+      - ./api:/app
+      - ./api/node_modules:/app/node_modules
+    command: npm run start:prod
+    environment:
+      PORT: 3000
+    ports:
+      - 9000:3000
