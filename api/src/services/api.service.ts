@@ -1,16 +1,19 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable, LoggerService } from '@nestjs/common';
 import { HttpService } from '@nestjs/axios';
 import { lastValueFrom } from 'rxjs';
 import { AxiosResponse } from 'axios';
 import { ConfigService } from '@nestjs/config';
+import { WINSTON_MODULE_PROVIDER } from 'nest-winston';
 
 @Injectable()
 export class ApiService {
 
-  constructor(private readonly httpService: HttpService, private readonly configService:ConfigService) {}
+  constructor(private readonly httpService: HttpService, private readonly configService:ConfigService,
+    @Inject(WINSTON_MODULE_PROVIDER) private readonly logger: LoggerService
+  ) {}
 
   readAPI(){
-    console.log('URL: ',this.configService.get('TRADE_API_URL'));   
+    this.logger.log('info', this.configService.get('TRADE_API_URL'));
   }
 
   // Example: GET request
