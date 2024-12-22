@@ -5,12 +5,16 @@ import { utilities as nestWinstonModuleUtilities, WinstonModule } from 'nest-win
 import * as winston from 'winston';
 
 import { WebhookController } from './webhook.controller';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { TypeOrmConfigService } from './config/typeorm-config.service';
+import { Partner } from './entities/partner.entity';
+import { AlertService } from './services/alert.service';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
-      envFilePath: `src/.env`,
+      envFilePath: `.env`,
     }),
     WinstonModule.forRoot({
       transports: [
@@ -29,10 +33,14 @@ import { WebhookController } from './webhook.controller';
         // other transports...
       ],
     }),
+    TypeOrmModule.forRootAsync({
+      useClass: TypeOrmConfigService,
+    }),
+    TypeOrmModule.forFeature([Partner]),
     HttpModule
   ],
   controllers: [WebhookController],
-  providers: [],
+  providers: [AlertService],
   exports: []
 })
 export class AppModule {}

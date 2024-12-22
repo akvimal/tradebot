@@ -12,10 +12,6 @@ export class ApiService {
     @Inject(WINSTON_MODULE_PROVIDER) private readonly logger: LoggerService
   ) {}
 
-  readAPI(){
-    this.logger.log('info', this.configService.get('TRADE_API_URL'));
-  }
-
   // Example: GET request
   async fetchData(endpoint: string): Promise<any> {
     try {
