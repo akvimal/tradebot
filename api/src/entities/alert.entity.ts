@@ -9,6 +9,7 @@ import {
 } from "typeorm";
 import { Partner } from "./partner.entity";
 import { AlertSecurity } from "./alert-security.entity";
+import { ClientAlert } from "./client-alert.entity";
 
 @Index("alert_pk", ["id"], { unique: true })
 @Index("alert_un", ["name", "partnerId"], { unique: true })
@@ -22,8 +23,8 @@ export class Alert {
 
   @Column("character varying", { name: "exchange"})
   exchange: string;
-  @Column("character varying", { name: "segment"})
-  segment: string;
+  @Column("character varying", { name: "instrument"})
+  instrument: string;
   @Column("character varying", { name: "order_type"})
   orderType: string;
 
@@ -40,4 +41,6 @@ export class Alert {
   @OneToMany(() => AlertSecurity, (securities) => securities.alert)
   securities: AlertSecurity[];
 
+  @OneToMany(() => ClientAlert, (ca) => ca.alert)
+  clientAlerts: ClientAlert[];
 }

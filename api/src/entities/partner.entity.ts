@@ -6,6 +6,7 @@ import {
   PrimaryGeneratedColumn,
 } from "typeorm";
 import { Alert } from "./alert.entity";
+import { ClientPartner } from "./client-partner.entity";
 
 @Index("partner_pk", ["id"], { unique: true })
 @Index("partner_un", ["name"], { unique: true })
@@ -19,5 +20,7 @@ export class Partner {
 
   @OneToMany(() => Alert, (alert) => alert.partner)
   alerts: Alert[];
- 
+  
+  @OneToMany(() => ClientPartner, (cp) => cp.partner)
+  clients: ClientPartner[];
 }
