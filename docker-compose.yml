@@ -10,14 +10,16 @@ services:
     command: npm run start:prod
     environment:
       PORT: 3000
-      DATABASE_URL: postgresql://postgres:postgres@host.docker.internal:5432/bot-db
+      DATABASE_URL: postgresql://postgres:postgres@host.docker.internal:5432/tradebotdb
+      MESSAGE_URL: amqp://host.docker.internal:5672
+      LOG_FOLDER: /Users/vimalkrishnan/temp/logs/tradebot
     ports:
       - 9090:3000
     networks:
       - local
   
   rabbitmq:
-    image: rabbitmq
+    image: rabbitmq:3
     ports:
       - '5672:5672'
     networks:
@@ -26,7 +28,7 @@ services:
   postgres:
     image: postgres:14
     restart: always
-    container_name: bot-db
+    container_name: db
     volumes:
       - tradebotdata:/var/lib/postgresql/data
     networks:  
@@ -34,7 +36,7 @@ services:
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: tradebot
+      POSTGRES_DB: tradebotdb
     ports:
       - 5432:5432
 networks:
