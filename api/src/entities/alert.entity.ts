@@ -20,13 +20,15 @@ export class Alert {
 
   @Column("character varying", { name: "name", unique: true })
   name: string;
+  @Column("character varying", { name: "setup"})
+  setup: string;
 
-  @Column("character varying", { name: "exchange"})
-  exchange: string;
-  @Column("character varying", { name: "instrument"})
-  instrument: string;
-  @Column("character varying", { name: "order_type"})
-  orderType: string;
+  // @Column("character varying", { name: "exchange"})
+  // exchange: string;
+  // @Column("character varying", { name: "segment"})
+  // segment: string;
+  @Column("character varying", { name: "alert_type"})
+  alertType: string;
 
   @Column("integer", { name: "partner_id", unique: true })
   partnerId: number;

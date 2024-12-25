@@ -24,7 +24,6 @@ import { DhanBrokerService } from './modules/broker/dhan.service';
 import { AlertProcessor } from './modules/strategy/alert.processor';
 import { ClientService } from './modules/client/client.service';
 import { ClientOrder } from './entities/client-order.entity';
-import { OrderTransaction } from './entities/order-transaction.entity';
 
 @Module({
   imports: [
@@ -60,7 +59,7 @@ import { OrderTransaction } from './entities/order-transaction.entity';
     TypeOrmModule.forRootAsync({
       useClass: TypeOrmConfigService,
     }),
-    TypeOrmModule.forFeature([Partner,AlertSecurity,ClientAlert,ClientOrder,OrderTransaction]),
+    TypeOrmModule.forFeature([Partner,AlertSecurity,ClientAlert,ClientOrder]),
     HttpModule
   ],
   controllers: [AlertController, OrderController],

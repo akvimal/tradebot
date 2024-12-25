@@ -1,26 +1,32 @@
 const obj = {
-	security: 'STK', //FUT,OPT
-	type: 'MARKET',
-	intraday: {
-		begin: '09:45',
-		end: '14:00'
+	exchange: 'NSE',//BSE/MCX'
+	segment: 'EQ',//FNO/CURRENCY/COMM'
+	entry: {
+	    productType: 'INTRADAY',//MTF/CNC',
+	    orderType: 'LIMIT',//MARKET/TRIGGER/CO/BO',
+		intraday: { 
+			validity: 'DAY',///IOC',
+			begin: '09:45', end: '14:00'
+		},
+	    position: { 
+			type: 'VALUE',//UNIT', 
+			build: true, //adding more positions on more alerts, AVG if the trade goes against,  ACMLT is the trade goes in favour
+			qty: {
+				min: 10000, incr: 2000, max: 20000,
+				disclose: 5
+			}
+		}
 	},
-	position: {
-		type: 'UNIT',//'AMNT','PCNT'
-		initial: 5,
-		repeat: 5,
-		final: 50
-	},
-	repeat: 0,
-	exit: 'SESSION',//'SIGNAL'
-	loss: {
-        limit: 0,
-        trailing: {
-            percent: 1,
-            point: 1,
-            same: true
-        }
-	}	
-}
+    exit: {
+		targets: [
+			{trigger_pcnt: 2, qty_pcnt:50, sl_pcnt: 0},
+			{trigger_pcnt: 1, qty_pcnt:25, sl_pcnt: 2}
+		],
+		stoploss: {
+			pcnt: .5
+		}
+	}
+  }
+
 
 console.log(JSON.stringify(obj)) // {};

@@ -25,8 +25,8 @@ export class ClientAlert {
   @Column({ name: 'is_active', type: 'boolean', default: true })
   isActive: boolean;
 
-  @Column({ name: 'is_virtual', type: 'boolean', default: false })
-  isVirtual: boolean;
+  @Column({ name: 'is_live', type: 'boolean', default: false })
+  isLive: boolean;
 
   @Column("json", { name: "config", nullable: true })
   config: object | null;
@@ -44,6 +44,7 @@ export class ClientAlert {
   )
   @JoinColumn([{ name: "client_partner_id", referencedColumnName: "id" }])
   clientPartner: ClientPartner;
+  
   @OneToMany(() => ClientOrder, (order) => order.clientAlert)
   orders: ClientOrder[];
 }

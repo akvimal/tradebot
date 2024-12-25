@@ -29,10 +29,10 @@ export class AlertService {
       .where('as.id = :id', {id}).getOne();
     }
     
-    async findSecurityMaster(exchange: string, instrument: string, symbol: string, ) {
+    async findSecurityMaster(exchange: string, segment: string, symbol: string, ) {
       return await this.manager.query(
         `select security_id, underlying_symbol, display_name from security_master where exch_id = '${exchange}' 
-        and instrument = '${instrument}' and underlying_symbol = '${symbol}'`);
+        and series = '${segment}' and underlying_symbol = '${symbol}'`);
     }
     
     async findClientAlerts(alertId: number) {
