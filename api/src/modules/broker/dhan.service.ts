@@ -10,9 +10,58 @@ export class DhanBrokerService implements BrokerService {
     constructor (private readonly apiService: ApiService,
         @Inject(WINSTON_MODULE_PROVIDER) private readonly logger: LoggerService) {}
 
-    placeOrder(order: Order): Promise<any> {
+    async placeOrder(brokerInfo: any, brokerClientInfo:any, order: Order): Promise<any> {
         this.logger.log('info',`Order placed: ${JSON.stringify(order)}`);
-        return Promise.resolve({status:'success'});
+        try {
+            // const response = await this.apiService.postData(`${brokerInfo.apiUrl}/v2/orders`, 
+            //     this.buildOrderRequest(brokerClientInfo['accountId'], order), {
+            //     "access-token": brokerClientInfo.accessToken,
+            //     "Content-Type": 'application/json'
+            // });
+            console.log(this.buildOrderRequest(brokerClientInfo['accountId'], order));
+            
+            // return Promise.resolve({orderStatus:response.orderStatus, orderId: response.orderId});    
+            return Promise.resolve({orderStatus:'PENDING', orderId: '111111111'});    
+        } catch (error) {
+            return Promise.reject({error})   
+        }
+    }
+
+    buildOrderRequest(clientId:any, order:Order){
+        const brokerOrder = {
+            "dhanClientId": clientId,
+            "transactionType":order['transType'],
+            "exchangeSegment":order['exchSegment'],
+            "productType":order['productType'],
+            "orderType":order['orderType'],
+            "validity":"DAY",
+            "securityId":order['securityId'],
+            "tradingSymbol": order['symbol'],
+            "quantity": order['entryQty']
+        }
+        if(order['orderType'] == 'LIMIT')
+            brokerOrder['price'] = order['entryPrice'];
+        
+        return brokerOrder;
+        // Sample Template
+        // {
+        //     "dhanClientId":"1000000003",
+        //     "correlationId":"123abc678",
+        //     "transactionType":"BUY",
+        //     "exchangeSegment":"NSE_EQ",
+        //     "productType":"INTRADAY",
+        //     "orderType":"MARKET",
+        //     "validity":"DAY",
+        //     "securityId":"11536",
+        //     "quantity":"5",
+        //     "disclosedQuantity":"",
+        //     "price":"",
+        //     "triggerPrice":"",
+        //     "afterMarketOrder":false,
+        //     "amoTime":"",
+        //     "boProfitValue":"",
+        //     "boStopLossValue": ""
+        // }
     }
 
     getOrder(orderId: string): Promise<any> {

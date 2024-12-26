@@ -15,7 +15,7 @@ export class AlertProcessor {
         private readonly orderService:OrderService, 
         private readonly brokerFactoryService:BrokerFactoryService){}
 
-    async processAlert(id: number) {
+    async process(id: number) {
         this.logger.log('info',`Processing alert entry for ${id}`);
         const alertInfo = await this.alertService.findAlertSecurity(id);
         this.logger.log('info',`Alert Security Info: ${JSON.stringify(alertInfo)}`);
@@ -30,32 +30,35 @@ export class AlertProcessor {
         //   display_name: 'Macrotech Developers'
         // }
         clientAlerts.forEach(async (ca) => {
+            // console.log(ca);
+            
             const secInfo = (await this.alertService.findSecurityMaster(ca['config']['exchange'], ca['config']['segment'], alertInfo.symbol))[0];
             //get client order, if not exist create one
             const order = await this.orderService.findOrder(ca['clientPartner']['clientId'], 
-                ca['config']['exchange'],ca['config']['segment'],
-                alertInfo['symbol'], 'OPEN');
+                ca['config']['exchange'],ca['config']['segment'], alertInfo['symbol'], 'OPEN');
             
             if(!order){
                 //create new order
-                this.orderService.saveOrder(this.buildInitialOrder(ca,alertInfo,secInfo));
+                const newOrder = this.buildInitialOrder(ca,alertInfo,secInfo);
+                if(ca.isLive){
+                    //call the appropriate broker service with new order
+                    const brokerService = this.brokerFactoryService.getBroker(ca['clientPartner']['partner']['name']);
+                    const brokerOrderResponse = await brokerService.placeOrder(ca['clientPartner']['partner'],ca['clientPartner'],newOrder);
+                    //update the order no and status
+                    await this.orderService.saveOrder({...newOrder, status:brokerOrderResponse.orderStatus, brokerOrderId:brokerOrderResponse.orderId});
+                }
+                else
+                    await this.orderService.saveOrder(newOrder);
             }
             else {
                 if(order.transType == ca.alert.alertType){
-                    this.orderService.saveOrder(this.buildRepeatOrder(ca,alertInfo,secInfo,order));
+                    await this.orderService.saveOrder(this.buildRepeatOrder(ca,alertInfo,secInfo,order));
                 }
                 else {
-                    this.orderService.saveOrder({...order, status: 'CLOSE', exitQty: order.entryQty, exitPrice: alertInfo['price']});
+                    await this.orderService.saveOrder({...order, status: 'CLOSE', exitQty: order.entryQty, exitPrice: alertInfo['price']});
                 }
                 //if the alert type (BUY/SELL) is same as existing order, repeat (if configured)
                 //otherwise, if configured to exit position by alert, close the position
-            }
-
-            if(!ca.isLive) {
-                // const brokerService = this.brokerFactoryService.getBroker(ca.clientPartner.partner.name);
-                // const orderRequest = brokerService.getOrderRequest(orderObj);
-                
-                // this.logger.log('info', `processing ${ca.clientPartner.accountId}`);
             }
       });
 

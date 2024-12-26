@@ -1,6 +1,6 @@
 export interface Order {
     exchange: string;
-    instrument: string;
+    segment: string;
     clientId: string;
     transactionType: string; //BUY,SELL
     orderType: string; //MARKET,LIMIT,SL,SL-M

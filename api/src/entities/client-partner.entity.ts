@@ -26,6 +26,11 @@ export class ClientPartner {
   @Column("character varying", { name: "account_id"})
   accountId: string;
 
+  @Column("character varying", { name: "access_token", nullable: true})
+  accessToken: string | null;
+  @Column("character varying", { name: "token_expiry", nullable: true})
+  tokenExpiry: string | null;
+
   @Column({ name: 'is_active', type: 'boolean', default: true })
   isActive: boolean;
 

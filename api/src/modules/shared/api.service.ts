@@ -24,10 +24,10 @@ export class ApiService {
   }
 
   // Example: POST request
-  async postData(endpoint: string, payload: any): Promise<any> {
+  async postData(endpoint: string, payload: any, headers:any): Promise<any> {
     try {
       const response: AxiosResponse = await lastValueFrom(
-        this.httpService.post(endpoint, payload)
+        this.httpService.post(endpoint, payload, {headers})
       );
       return response.data;
     } catch (error) {

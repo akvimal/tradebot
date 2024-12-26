@@ -9,7 +9,7 @@ export class BrokerFactoryService {
 
     getBroker(type: string): BrokerService {
         switch (type) {
-            case 'dhan':
+            case 'Dhan':
               return this.dhanBrokerService;
             default:
               throw new Error('Invalid broker type');

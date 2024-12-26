@@ -15,8 +15,12 @@ export class Partner {
   @PrimaryGeneratedColumn({ type: "integer", name: "id" })
   id: number;
 
-  @Column("character varying", { name: "name", nullable: true, unique: true })
-  name: string | null;
+  @Column("character varying", { name: "name", unique: true })
+  name: string;
+  @Column("character varying", { name: "data_api", nullable: true})
+  dataApi: string | null;
+  @Column("character varying", { name: "trade_api", nullable: true})
+  tradeApi: string | null;
 
   @OneToMany(() => Alert, (alert) => alert.partner)
   alerts: Alert[];

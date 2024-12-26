@@ -16,7 +16,6 @@ import { AlertService } from './modules/alert/alert.service';
 import { RabbitMQService } from './modules/shared/rabbitmq.service';
 import { ApiService } from './modules/shared/api.service';
 import { OrderService } from './modules/order/order.service';
-import { OrderController } from './modules/order/order.controller';
 import { AlertController } from './modules/alert/alert.controller';
 import { AlertConsumer } from './modules/strategy/alert.consumer';
 import { BrokerFactoryService } from './modules/broker/broker-factory.service';
@@ -24,6 +23,9 @@ import { DhanBrokerService } from './modules/broker/dhan.service';
 import { AlertProcessor } from './modules/strategy/alert.processor';
 import { ClientService } from './modules/client/client.service';
 import { ClientOrder } from './entities/client-order.entity';
+import { BrokerController } from './modules/broker/broker.controller';
+import { FeedbackConsumer } from './modules/strategy/feedback.consumer';
+import { FeedbackProcessor } from './modules/strategy/feedback.processor';
 
 @Module({
   imports: [
@@ -62,9 +64,9 @@ import { ClientOrder } from './entities/client-order.entity';
     TypeOrmModule.forFeature([Partner,AlertSecurity,ClientAlert,ClientOrder]),
     HttpModule
   ],
-  controllers: [AlertController, OrderController],
+  controllers: [AlertController, BrokerController],
   providers: [ApiService, BrokerFactoryService, DhanBrokerService, RabbitMQService, 
-    AlertConsumer, AlertProcessor, AlertService, OrderService, ClientService],
+    AlertConsumer, AlertProcessor, AlertService, FeedbackConsumer, FeedbackProcessor, OrderService, ClientService],
   exports: []
 })
 export class AppModule {}
