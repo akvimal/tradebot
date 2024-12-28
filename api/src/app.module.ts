@@ -1,5 +1,5 @@
-import { Module } from '@nestjs/common';
-import { ConfigModule } from '@nestjs/config';
+import { Module, OnModuleInit } from '@nestjs/common';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import { HttpModule } from '@nestjs/axios';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { utilities as nestWinstonModuleUtilities, WinstonModule } from 'nest-winston';
@@ -26,6 +26,13 @@ import { ClientOrder } from './entities/client-order.entity';
 import { BrokerController } from './modules/broker/broker.controller';
 import { FeedbackConsumer } from './modules/strategy/feedback.consumer';
 import { FeedbackProcessor } from './modules/strategy/feedback.processor';
+import { AppUser } from './entities/appuser.entity';
+import { AuthController } from './modules/app/auth/auth.controller';
+import { AuthService } from './modules/app/auth/auth.service';
+import { AuthHelper } from './modules/app/auth/auth.helper';
+import { PassportModule } from '@nestjs/passport';
+import { JwtModule } from '@nestjs/jwt';
+import { OrdersController } from './modules/order/orders.controller';
 
 @Module({
   imports: [
@@ -58,14 +65,22 @@ import { FeedbackProcessor } from './modules/strategy/feedback.processor';
         })
       ],
     }),
+    PassportModule.register({ defaultStrategy: 'jwt', property: 'user' }),
+    JwtModule.registerAsync({
+      inject: [ConfigService],
+      useFactory: (config: ConfigService) => ({
+        secret: config.get('JWT_KEY'),
+        signOptions: { expiresIn: config.get('JWT_EXPIRES') },
+      }),
+    }),
     TypeOrmModule.forRootAsync({
       useClass: TypeOrmConfigService,
     }),
-    TypeOrmModule.forFeature([Partner,AlertSecurity,ClientAlert,ClientOrder]),
+    TypeOrmModule.forFeature([Partner,AlertSecurity,ClientAlert,ClientOrder,AppUser]),
     HttpModule
   ],
-  controllers: [AlertController, BrokerController],
-  providers: [ApiService, BrokerFactoryService, DhanBrokerService, RabbitMQService, 
+  controllers: [AuthController, AlertController, BrokerController, OrdersController],
+  providers: [AuthService, AuthHelper, ApiService, BrokerFactoryService, DhanBrokerService, RabbitMQService, 
     AlertConsumer, AlertProcessor, AlertService, FeedbackConsumer, FeedbackProcessor, OrderService, ClientService],
   exports: []
 })

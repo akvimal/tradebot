@@ -1,5 +1,6 @@
 import { Inject, Injectable, LoggerService } from "@nestjs/common";
 import { WINSTON_MODULE_PROVIDER } from "nest-winston";
+import * as moment from "moment"; 
 
 import { AlertService } from "../alert/alert.service";
 import { OrderService } from "../order/order.service";
@@ -38,17 +39,35 @@ export class AlertProcessor {
                 ca['config']['exchange'],ca['config']['segment'], alertInfo['symbol'], 'OPEN');
             
             if(!order){
-                //create new order
-                const newOrder = this.buildInitialOrder(ca,alertInfo,secInfo);
-                if(ca.isLive){
-                    //call the appropriate broker service with new order
-                    const brokerService = this.brokerFactoryService.getBroker(ca['clientPartner']['partner']['name']);
-                    const brokerOrderResponse = await brokerService.placeOrder(ca['clientPartner']['partner'],ca['clientPartner'],newOrder);
-                    //update the order no and status
-                    await this.orderService.saveOrder({...newOrder, status:brokerOrderResponse.orderStatus, brokerOrderId:brokerOrderResponse.orderId});
+                if(ca['config']['entry']['productType'] !== 'INTRADAY' || 
+                    (ca['config']['entry']['productType'] === 'INTRADAY')){
+                
+                        if(!this.isWithInConfiguredTimeWindow(ca['config']['entry']['intraday'])){
+                            this.logger.log('warn', 'INTRADAY time window not allowed');
+                            return;
+                        }
+                    //create new order within time window
+
+                    const newOrder = this.buildInitialOrder(ca,alertInfo,secInfo);
+                    if(newOrder.entryQty > 0){
+                        if(ca.isLive){
+                            //call the appropriate broker service with new order
+                            const brokerService = this.brokerFactoryService.getBroker(ca['clientPartner']['partner']['name']);
+                            try {
+                                const brokerOrderResponse = await brokerService.placeOrder(ca['clientPartner']['partner'],ca['clientPartner'],newOrder);
+                                //update the order no and status
+                                await this.orderService.saveOrder({...newOrder, alertSecurityId: id, status:brokerOrderResponse.orderStatus, brokerOrderId:brokerOrderResponse.orderId});    
+                            } catch (error) {
+                                this.logger.log('error', error.response.data)   
+                            }
+                        }
+                        else
+                            await this.orderService.saveOrder({...newOrder,alertSecurityId: id,});
+                    }
+                    else {
+                        this.logger.log('info', `Amount configured for new position is insufficient for ${order.symbol}`)
+                    }
                 }
-                else
-                    await this.orderService.saveOrder(newOrder);
             }
             else {
                 if(order.transType == ca.alert.alertType){
@@ -61,7 +80,15 @@ export class AlertProcessor {
                 //otherwise, if configured to exit position by alert, close the position
             }
       });
+    }
 
+    isWithInConfiguredTimeWindow(duration: any) {
+        const current = new Date();
+        const start = new Date();
+        start.setHours(duration['begin'].split(':')[0], duration['begin'].split(':')[1]);
+        const end = new Date();
+        end.setHours(duration['end'].split(':')[0], duration['end'].split(':')[1]);
+        return current.getTime() >= start.getTime() && current.getTime() <= end.getTime() ;
     }
 
     buildInitialOrder(ca: ClientAlert, alertInfo:any, secInfo: any): any {
@@ -70,7 +97,7 @@ export class AlertProcessor {
             exchSegment: ca['config']['exchange']+'_'+ca['config']['segment'],
             symbol: secInfo['underlying_symbol'],
             securityId: secInfo['security_id'], 
-            transType: ca.alert.alertType, 
+            transType: ca.alert.alertType,  
             status: 'OPEN'};
 
         const config = ca['config'];

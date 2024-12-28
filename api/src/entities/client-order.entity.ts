@@ -7,6 +7,7 @@ import {
   PrimaryGeneratedColumn,
 } from "typeorm";
 import { ClientAlert } from "./client-alert.entity";
+import { AlertSecurity } from "./alert-security.entity";
 
 @Index("client_order_pk", ["id"], { unique: true })
 @Entity("client_orders")
@@ -16,6 +17,8 @@ export class ClientOrder {
 
   @Column("integer", { name: "client_alert_id"})
   clientAlertId?: number;
+  @Column("integer", { name: "alert_security_id"})
+  alertSecurityId?: number;
 
   @Column("character varying", { name: "exch_segment", length: 255 })
   exchSegment: string;
@@ -52,9 +55,16 @@ export class ClientOrder {
   updateddOn?: string | null;
 
   @ManyToOne(
-      () => ClientAlert,
-      (ca) => ca.orders
+    () => ClientAlert,
+    (ca) => ca.orders
   )
   @JoinColumn([{ name: "client_alert_id", referencedColumnName: "id" }])
   clientAlert?: ClientAlert;
+
+  @ManyToOne(
+      () => AlertSecurity,
+      (as) => as.orders
+  )
+  @JoinColumn([{ name: "alert_security_id", referencedColumnName: "id" }])
+  alertSecurity?: AlertSecurity;
 }

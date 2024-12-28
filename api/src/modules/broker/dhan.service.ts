@@ -12,19 +12,18 @@ export class DhanBrokerService implements BrokerService {
 
     async placeOrder(brokerInfo: any, brokerClientInfo:any, order: Order): Promise<any> {
         this.logger.log('info',`Order placed: ${JSON.stringify(order)}`);
-        try {
-            // const response = await this.apiService.postData(`${brokerInfo.apiUrl}/v2/orders`, 
-            //     this.buildOrderRequest(brokerClientInfo['accountId'], order), {
-            //     "access-token": brokerClientInfo.accessToken,
-            //     "Content-Type": 'application/json'
-            // });
-            console.log(this.buildOrderRequest(brokerClientInfo['accountId'], order));
-            
-            // return Promise.resolve({orderStatus:response.orderStatus, orderId: response.orderId});    
-            return Promise.resolve({orderStatus:'PENDING', orderId: '111111111'});    
-        } catch (error) {
-            return Promise.reject({error})   
-        }
+        let response = null;
+       try {
+        response = await this.apiService.postData(`${brokerInfo['tradeApi']}/v2/orders`, 
+            this.buildOrderRequest(brokerClientInfo['accountId'], order), {
+            "access-token": brokerClientInfo.accessToken,
+            "Content-Type": 'application/json'
+        });
+        return Promise.resolve({orderStatus:response['data']['orderStatus'], orderId:response['data']['orderId']}); 
+       } catch (error) {
+        return Promise.reject(error)
+       }
+        
     }
 
     buildOrderRequest(clientId:any, order:Order){
@@ -36,7 +35,7 @@ export class DhanBrokerService implements BrokerService {
             "orderType":order['orderType'],
             "validity":"DAY",
             "securityId":order['securityId'],
-            "tradingSymbol": order['symbol'],
+            // "tradingSymbol": order['symbol'],
             "quantity": order['entryQty']
         }
         if(order['orderType'] == 'LIMIT')

@@ -27,10 +27,15 @@ export class AlertController {
     this.logger.log('info',`Alert payload: ${JSON.stringify(payload)}`);
     
     this.formatSecurities(payload.stocks, payload.trigger_prices).forEach(async (security) => {
-      const alert_sec_id = await this.alertService.createAlertEntry(payload.alert_name, 
-        this.getTimestampWithTime(payload.triggered_at), security.symbol,security.price);
-      // this.logger.log('info',`Alert created [${alert_sec_id}]`);
-      this.mqService.publishMessage(AlertConsumer.ALERT_QUEUE, alert_sec_id).catch(error => this.logger.log('error',error));
+      try {
+        const alert_sec_id = await this.alertService.createAlertEntry(payload.alert_name, 
+          this.getTimestampWithTime(payload.triggered_at), security.symbol,security.price);
+        // this.logger.log('info',`Alert created [${alert_sec_id}]`);
+        this.mqService.publishMessage(AlertConsumer.ALERT_QUEUE, alert_sec_id).catch(error => this.logger.log('error',error));  
+      } catch (error) {
+        this.logger.log('error', `Unable to save ALERT_SECURITY_INFO for ${payload.alert_name} with symbol ${security.symbol}`)
+        this.logger.log('error', error.message);
+      }
     });
 
     //validate the incoming data    

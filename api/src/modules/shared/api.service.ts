@@ -25,15 +25,9 @@ export class ApiService {
 
   // Example: POST request
   async postData(endpoint: string, payload: any, headers:any): Promise<any> {
-    try {
-      const response: AxiosResponse = await lastValueFrom(
+    return await lastValueFrom(
         this.httpService.post(endpoint, payload, {headers})
       );
-      return response.data;
-    } catch (error) {
-      console.error('Error posting data:', error);
-      throw error;
-    }
   }
 
   // Example: PUT request

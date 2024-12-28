@@ -9,6 +9,7 @@ import {
 } from "typeorm";
 import { Partner } from "./partner.entity";
 import { Alert } from "./alert.entity";
+import { ClientOrder } from "./client-order.entity";
 
 @Index("alert_sec_pk", ["id"], { unique: true })
 @Entity("alert_securities")
@@ -35,4 +36,6 @@ export class AlertSecurity {
   @JoinColumn([{ name: "alert_id", referencedColumnName: "id" }])
   alert: Alert;
 
+  @OneToMany(() => ClientOrder, (order) => order.clientAlert)
+  orders: ClientOrder[];
 }
