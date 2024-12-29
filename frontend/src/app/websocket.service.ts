@@ -1,38 +1,37 @@
 import { Injectable } from '@angular/core';
-import { Observable, Subject } from 'rxjs';
+import { io, Socket } from 'socket.io-client';
+import { Observable } from 'rxjs';
 
-@Injectable({
-  providedIn: 'root'
-})
-export class WebsocketService {
-  private socket: WebSocket | undefined;
-  private subject: Subject<any> = new Subject<any>();
+@Injectable({ providedIn: 'root' })
+export class WebSocketService {
+  private socket: Socket;
 
-  connect(url: string): Observable<any> {
-    
-    if (!this.socket || this.socket.readyState !== WebSocket.OPEN) {
-      this.socket = new WebSocket(url);
-
-      this.socket.onmessage = (event) => {
-        this.subject.next(event.data);
-      };
-
-      this.socket.onerror = (error) => {
-        console.error('WebSocket error:', error);
-      };
-
-      this.socket.onclose = () => {
-        console.log('WebSocket closed');
-      };
-    }
-    return this.subject.asObservable();
+  constructor() {
+    // const token = `eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJpc3MiOiJkaGFuIiwicGFydG5lcklkIjoiIiwiZXhwIjoxNzM1Nzg1MjU0LCJ0b2tlbkNvbnN1bWVyVHlwZSI6IlNFTEYiLCJ3ZWJob29rVXJsIjoiaHR0cDovLzg5LjIzMy4xMDQuMjo5MDkwL29yZGVyL2ZlZWRiYWNrL2RoYW4iLCJkaGFuQ2xpZW50SWQiOiIxMTAxMTIxNTE1In0.DIoESWnDxtUYzAjCdD8z-DWB7dBWQceOEySLTt2i6rsyHZkpFe8YLbBkW-YiGbPwStPuDWBkkRhg7oT0kKDsvA`;
+    //     const clientId = `1101121515`;
+        
+    //     const url = `wss://api-feed.dhan.co?version=2&token=${token}&clientId=${clientId}&authType=2`
+    //     console.log('connecting ws ...');
+        const url = 'ws://localhost:3000';
+         
+    this.socket = io(url); 
   }
 
-  sendMessage(message: any) {
-    this.socket?.send(JSON.stringify(message));
+  sendMessage(message: string) {
+    this.socket.emit('message', { text: message });
+  }
+
+  receiveMessages(): Observable<any> {
+    return new Observable((subscriber) => {
+      this.socket.on('message', (data) => {
+        subscriber.next(data);
+      });
+    });
   }
 
   disconnect() {
-    this.socket?.close();
+    if (this.socket) {
+      this.socket.disconnect();
+    }
   }
 }
