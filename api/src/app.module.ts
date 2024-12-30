@@ -1,4 +1,4 @@
-import { Module, OnModuleInit } from '@nestjs/common';
+import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { HttpModule } from '@nestjs/axios';
 import { TypeOrmModule } from '@nestjs/typeorm';
@@ -36,6 +36,7 @@ import { Client } from './entities/client.entity';
 import { PassportModule } from '@nestjs/passport';
 import { JwtModule } from '@nestjs/jwt';
 import { JwtStrategy } from './modules/app/auth/auth.strategy';
+import { SignalController } from './modules/alert/signal.controller';
 
 @Module({
   imports: [
@@ -82,9 +83,9 @@ import { JwtStrategy } from './modules/app/auth/auth.strategy';
     TypeOrmModule.forFeature([Client,Partner,Alert,AlertSecurity,ClientAlert,ClientOrder,AppUser]),
     HttpModule
   ],
-  controllers: [AuthController, AlertController, BrokerController, OrdersController],
+  controllers: [AuthController, SignalController, AlertController, BrokerController, OrdersController],
   providers: [AuthService, AuthHelper, ApiService, BrokerFactoryService, DhanBrokerService, RabbitMQService, 
-    AlertConsumer, AlertProcessor, AlertService, FeedbackConsumer, FeedbackProcessor, OrderService, ClientService,JwtStrategy],
+    AlertConsumer, AlertProcessor, AlertService, FeedbackConsumer, FeedbackProcessor, OrderService, ClientService, JwtStrategy],
   exports: []
 })
 export class AppModule {}
