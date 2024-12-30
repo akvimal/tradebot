@@ -1,0 +1,6 @@
+<h5>My Alerts</h5>
+<div class="card mt-2 p-2" *ngFor="let a of alerts">
+    <div>{{a.alert.alertType}} {{a.alert.name}} <span *ngIf="a.isLive" class="badge text-bg-secondary">Live</span></div>
+    <div><label>{{a.config.exchange}}_{{a.config.segment}}</label>{{a.config.entry.productType}} {{a.config.entry.orderType}}</div>
+    <div><label>{{a.config.entry.position.type}}</label>Min:{{a.config.entry.position.qty.min}} | Incr:{{a.config.entry.position.qty.incr}} | Max:{{a.config.entry.position.qty.max}}</div>
+</div>

@@ -2,6 +2,7 @@ import { Inject, Injectable, LoggerService } from "@nestjs/common";
 import { InjectEntityManager, InjectRepository } from "@nestjs/typeorm";
 import { WINSTON_MODULE_PROVIDER } from "nest-winston";
 import { AlertSecurity } from "src/entities/alert-security.entity";
+import { Alert } from "src/entities/alert.entity";
 import { ClientAlert } from "src/entities/client-alert.entity";
 import { EntityManager, Repository } from "typeorm";
 
@@ -11,13 +12,32 @@ export class AlertService {
     constructor (@Inject(WINSTON_MODULE_PROVIDER) private readonly logger: LoggerService,
     @InjectEntityManager() private manager: EntityManager, 
     @InjectRepository(AlertSecurity) private readonly alertSecRepository: Repository<AlertSecurity>,
-    @InjectRepository(ClientAlert) private readonly clientAlertRepository: Repository<ClientAlert>) {}
+    @InjectRepository(ClientAlert) private readonly clientAlertRepository: Repository<ClientAlert>,
+    @InjectRepository(Alert) private readonly alertRepository: Repository<Alert>) {}
+    
+    async findAllAlerts(criteria:any){
+      return await this.alertRepository.createQueryBuilder('a')
+      .innerJoinAndMapOne('a.partner', 'a.partner', 'partner').getMany();
+    }
 
-    async createAlertEntry(name: string, createdOn: string, symbol: string, price: number) {  
+    async findAllAlertSecurities(alertId:number){
+      return await this.alertSecRepository.find({where:{alertId},order:{createdOn:'desc'}});
+    }
+
+    async findAllClientAlerts(clients:[]){
+      return await this.clientAlertRepository.createQueryBuilder('ca')
+        .innerJoinAndMapOne('ca.alert', 'ca.alert', 'alert')
+        .innerJoinAndMapOne('ca.clientPartner', 'ca.clientPartner', 'cp')
+        .innerJoinAndMapOne('cp.client', 'cp.client', 'c')
+        .select(['ca','alert'])
+        .where('ca.isActive = true and c.id in (:...ids)', {ids:clients}).getMany();
+    }
+
+    async createAlertEntry( alertId: number, createdOn: string, symbol: string, price: number) {  
       const seq_id = (await this.manager.query(`select nextval('alert_securities_id_seq')`))[0].nextval;
       await this.manager.query(
         `insert into alert_securities (id, alert_id, symbol,price,created_on) values 
-            (${seq_id},(select id from alerts where name = '${name}'), '${symbol}', ${price}, '${createdOn}');`);
+            (${seq_id},${alertId},'${symbol}',${price},'${createdOn}');`);
       return Promise.resolve(seq_id);
     }
 

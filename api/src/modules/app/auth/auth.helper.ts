@@ -3,7 +3,8 @@ import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import * as bcrypt from 'bcryptjs';
-import { AppUser } from 'src/entities/appuser.entity';
+import { AppUser } from 'src/entities/app-user.entity';
+import { Client } from 'src/entities/client.entity';
 
 @Injectable()
 export class AuthHelper {
@@ -24,12 +25,15 @@ export class AuthHelper {
 
   // Get User by User ID we get from decode()
   public async validateUser(decoded: any): Promise<AppUser> {
-    return this.repository.findOne(decoded.id);
+    const user = await this.repository.findOne({where:{id:decoded.id}});
+    return {...user, clients: decoded.clients};
   }
 
   // Generate JWT Token
-  public generateToken(user: AppUser): string {
-    return this.jwt.sign({ id: user.id, email: user.email });
+  public generateToken(user: AppUser, clients: Client[]): string {
+    console.log('generating token with clients',clients);
+    
+    return this.jwt.sign({ id: user.id, email: user.email, clients: clients.map(c => c.id) });
   }
 
   // Validate User's password

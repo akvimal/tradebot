@@ -15,7 +15,8 @@ export class OrderService {
         return await this.clientOrderRepository.createQueryBuilder('co')
         .innerJoinAndMapOne('co.clientAlert', 'co.clientAlert', 'alert')
         .innerJoinAndMapOne('alert.clientPartner', 'alert.clientPartner', 'partner')
-        .where(`partner.clientId = :clientId and alert.config->>'exchange' = :exchange and alert.config->>'segment' = :segment and co.symbol = :symbol and co.status = :status`, 
+        .where(`partner.clientId = :clientId and alert.config->>'exchange' = :exchange and 
+            alert.config->>'segment' = :segment and co.symbol = :symbol and co.status = :status`, 
             {clientId,exchange,segment,symbol,status}).getOne();
     }
 

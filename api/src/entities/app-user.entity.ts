@@ -3,8 +3,10 @@ import {
   Column,
   Entity,
   Index,
+  OneToMany,
   PrimaryGeneratedColumn,
 } from "typeorm";
+import { Client } from "./client.entity";
 
 @Index("app_user_un", ["email"], { unique: true })
 @Index("app_user_pk", ["id"], { unique: true })
@@ -24,4 +26,6 @@ export class AppUser {
   @Column({ name: "last_login", type: 'timestamp', nullable: true, default: null })
   public lastlogin: Date | null;
 
+    @OneToMany(() => Client, (c) => c.appUser)
+    clients: Client[];
 }

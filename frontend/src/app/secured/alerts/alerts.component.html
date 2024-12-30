@@ -1,0 +1,15 @@
+<h5>Alerts</h5>
+<div class="row">
+    <div class="col-6">
+        <div class="card mt-2 p-2" *ngFor="let a of alerts" (click)="openSecurities(a.id)">
+            <div><span>{{a.partner.name}}</span> {{a.alertType}} {{a.name}} <span *ngIf="a.isActive" class="badge text-bg-secondary">Active</span></div>
+            <p *ngIf="a.setup">{{a.setup}}</p>
+            <!-- <a class="nav-link" routerLink="securities"><span>Secu</span></a> -->
+            <!-- <div><label>{{a.config.exchange}}_{{a.config.segment}}</label>{{a.config.entry.productType}} {{a.config.entry.orderType}}</div>
+            <div><label>{{a.config.entry.position.type}}</label>Min:{{a.config.entry.position.qty.min}} | Incr:{{a.config.entry.position.qty.incr}} | Max:{{a.config.entry.position.qty.max}}</div> -->
+        </div>
+    </div>
+    <div class="col-6">
+        <router-outlet></router-outlet>
+    </div>
+</div>

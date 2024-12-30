@@ -22,7 +22,8 @@ export class Alert {
   name: string;
   @Column("character varying", { name: "setup"})
   setup: string;
-
+  @Column({ name: 'is_active', type: 'boolean', default: true })
+  isActive: boolean;
   // @Column("character varying", { name: "exchange"})
   // exchange: string;
   // @Column("character varying", { name: "segment"})

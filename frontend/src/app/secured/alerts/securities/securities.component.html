@@ -1,0 +1,6 @@
+<h6>Securities</h6>
+<div>
+    <ul>
+        <li *ngFor="let s of securities">{{s.createdOn | date}} | {{s.symbol}} | {{s.price}}</li>
+    </ul>
+</div>
