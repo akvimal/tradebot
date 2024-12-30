@@ -39,6 +39,22 @@ services:
       POSTGRES_DB: tradebotdb
     ports:
       - 5432:5432
+  
+  frontend:
+    build:
+      dockerfile: Dockerfile
+      context: ./frontend
+    command: ng serve --configuration production
+    depends_on:
+      - api
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    ports:
+      - 9390:4300
+    networks:
+      - local
+      
 networks:
   local:
 
