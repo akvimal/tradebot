@@ -36,9 +36,13 @@ export class OrderService {
     }
 
     async saveOrder(order:ClientOrder){
-        console.log(order);
-        
         return await this.clientOrderRepository.save(order);
+    }
+
+    async updateOrder(orderId:number,qty:number,price:number,status:string,correlationId:string){
+        const sql = `update client_orders set entry_qty = ${qty} and entry_price = ${price}
+        and status = '${status}' and correlation_id = '${correlationId}' where broker_order_id = ${orderId}`
+        return await this.manager.query(sql);
     }
 
 }

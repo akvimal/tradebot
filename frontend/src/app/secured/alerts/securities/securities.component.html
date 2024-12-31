@@ -1,6 +1,6 @@
 <h6>Securities</h6>
 <div>
     <ul>
-        <li *ngFor="let s of securities">{{s.createdOn | date}} | {{s.symbol}} | {{s.price}}</li>
+        <li *ngFor="let s of securities">{{s.createdOn | date : 'hh:mm':'UTC+5:30'}} | {{s.symbol}} | {{s.price}}</li>
     </ul>
 </div>

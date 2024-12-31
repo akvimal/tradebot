@@ -92,8 +92,8 @@ export class AlertProcessor {
         console.log('curent: ',current);
         console.log('end: ',end);
         
-        // return current.getTime() >= start.getTime() && current.getTime() <= end.getTime() ;
-        return true;
+        return current.getTime() >= start.getTime() && current.getTime() <= end.getTime() ;
+        // return true;
     }
 
     buildInitialOrder(ca: ClientAlert, alertInfo:any, secInfo: any): any {

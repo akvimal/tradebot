@@ -23,7 +23,7 @@ export class AlertSecurity {
   @Column("double precision", { name: "price", precision: 53 })
   price: number;
   
-  @Column("date", { name: "created_on"})
+  @Column("timestamp", { name: "created_on"})
   createdOn: string | null;
 
   @Column("integer", { name: "alert_id" })

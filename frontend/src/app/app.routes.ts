@@ -6,6 +6,7 @@ import { OrdersComponent } from './secured/orders/orders.component';
 import { AlertsComponent } from './secured/alerts/alerts.component';
 import { MyAlertsComponent } from './secured/myalerts/myalerts.component';
 import { SecuritiesComponent } from './secured/alerts/securities/securities.component';
+import { FeedComponent } from './secured/feed/feed.component';
 
 export const routes: Routes = [
     { path: 'login', component: LoginComponent },
@@ -15,7 +16,8 @@ export const routes: Routes = [
           { path: 'securities/:id', component: SecuritiesComponent }  
         ] },
         { path: 'alerts/my', component: MyAlertsComponent },
-        { path: 'orders', component: OrdersComponent }
+        { path: 'orders', component: OrdersComponent },
+        { path: 'feed', component: FeedComponent }
       ]
      },
     { path: '**', redirectTo: '/login' }
