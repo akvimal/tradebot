@@ -83,16 +83,18 @@ export class AlertProcessor {
     }
 
     isWithInConfiguredTimeWindow(duration: any) {
-        const current = new Date();
+        
         const start = new Date();
         start.setHours(duration['begin'].split(':')[0], duration['begin'].split(':')[1]);
         const end = new Date();
         end.setHours(duration['end'].split(':')[0], duration['end'].split(':')[1]);
+        const current = new Date();
+        
         console.log('start: ',start);
         console.log('curent: ',current);
         console.log('end: ',end);
-        
-        return current.getTime() >= start.getTime() && current.getTime() <= end.getTime() ;
+        const tzadjusted = current.getTime() + (1000*60*60*5.5);//+5:30
+        return tzadjusted >= start.getTime() && tzadjusted <= end.getTime() ;
         // return true;
     }
 
