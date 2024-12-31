@@ -40,10 +40,9 @@ export class OrderService {
     }
 
     async updateOrder(orderId:number,qty:number,price:number,status:string,correlationId:string){
-        const sql = `update client_orders set entry_qty = ${qty}, entry_price = ${price}, status = '${status}', correlation_id = '${correlationId}' where broker_order_id = ${orderId}`;
-        console.log(sql);
-        
-        // return await this.manager.query(sql);
+        const sql = `update client_orders set entry_qty = ${qty}, entry_price = ${price}, status = '${status}', 
+            correlation_id = '${correlationId}' where broker_order_id = '${orderId}'`;
+        return await this.manager.query(sql);
     }
 
 }
