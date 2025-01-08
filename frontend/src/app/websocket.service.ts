@@ -7,23 +7,31 @@ export class WebSocketService {
   private socket: Socket;
 
   constructor() {
-    const token = `eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJpc3MiOiJkaGFuIiwicGFydG5lcklkIjoiIiwiZXhwIjoxNzM1Nzg1MjU0LCJ0b2tlbkNvbnN1bWVyVHlwZSI6IlNFTEYiLCJ3ZWJob29rVXJsIjoiaHR0cDovLzg5LjIzMy4xMDQuMjo5MDkwL29yZGVyL2ZlZWRiYWNrL2RoYW4iLCJkaGFuQ2xpZW50SWQiOiIxMTAxMTIxNTE1In0.DIoESWnDxtUYzAjCdD8z-DWB7dBWQceOEySLTt2i6rsyHZkpFe8YLbBkW-YiGbPwStPuDWBkkRhg7oT0kKDsvA`;
+    const token = `eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJpc3MiOiJkaGFuIiwicGFydG5lcklkIjoiIiwiZXhwIjoxNzM2ODUxOTQwLCJ0b2tlbkNvbnN1bWVyVHlwZSI6IlNFTEYiLCJ3ZWJob29rVXJsIjoiIiwiZGhhbkNsaWVudElkIjoiMTEwMTEyMTUxNSJ9.sP82yLDVq4OrdMvCdtGIiT6uFLUEs_GDa-Vr-g53L4B324NR-8gyj7eiKh2ogqxieaKtob5NskICj2JMYRAbQw`;
         const clientId = `1101121515`;
         
         const url = `wss://api-feed.dhan.co?version=2&token=${token}&clientId=${clientId}&authType=2`
         console.log('connecting ws ...');
         // const url = 'ws://localhost:3000';
          
-    this.socket = io(url); 
+    this.socket = io(url, { transports : ['websocket'] });
   }
 
   sendMessage(message: string) {
+    console.log('sending ...',message);
+    
     this.socket.emit('message', { text: message });
   }
 
   receiveMessages(): Observable<any> {
+    console.log('....');
+    
     return new Observable((subscriber) => {
+      console.log('subscriber:',subscriber);
+      
       this.socket.on('message', (data) => {
+        console.log('received',data);
+        
         subscriber.next(data);
       });
     });
@@ -32,12 +40,16 @@ export class WebSocketService {
   disconnect() {
     if (this.socket) {
       this.socket.disconnect();
+      console.log('disconnected');
+      
     }
   }
   
   connect() {
     if (this.socket) {
       this.socket.connect();
+      console.log('connected');
+      
     }
   }
 }

@@ -41,27 +41,32 @@ export class AlertProcessor {
             if(!order){
                 if(ca['config']['entry']['productType'] !== 'INTRADAY' || 
                     (ca['config']['entry']['productType'] === 'INTRADAY')){
-                
                         if(!this.isWithInConfiguredTimeWindow(ca['config']['entry']['intraday'])){
                             this.logger.log('warn', 'INTRADAY time window not allowed');
                             return;
                         }
                     //create new order within time window
-
-                    const newOrder = this.buildInitialOrder(ca,alertInfo,secInfo);
+                    //TODO: should figure out the entry price, stop loss and others based on config
+                        // ORDER LEG: 
+                        // entry price may be MARKET or LIMIT (close after some buffer of high of signal candle)
+                        // set the status to PENDING, if the LTP has not reached, if reached set to OPEN
+                        // SL LEG: exit price may be SL-M or SL-L, for example, SL trigger price may be below low of entry candle with some buffer, or if entry candle is long range, 50% of entry candle
+                        // set the status to PENDING, if the LTP reached it after the entry leg is OPEN, close SL leg
+                        // if the time of exit reached (for Intraday, 3:19 PM), close the open positions with LTP and cancel the SL leg, if they are still in pending
+                    const newOrder = this.buildEntryOrder(ca,alertInfo,secInfo);
                     if(newOrder.entryQty > 0){
-                        if(ca.isLive){
-                            //call the appropriate broker service with new order
-                            const brokerService = this.brokerFactoryService.getBroker(ca['clientPartner']['partner']['name']);
-                            try {
-                                const brokerOrderResponse = await brokerService.placeOrder(ca['clientPartner']['partner'],ca['clientPartner'],newOrder);
-                                //update the order no and status
-                                await this.orderService.saveOrder({...newOrder, alertSecurityId: id, status:brokerOrderResponse.orderStatus, brokerOrderId:brokerOrderResponse.orderId});    
-                            } catch (error) {
-                                this.logger.log('error', error.response.data)   
-                            }
-                        }
-                        else
+                        // if(ca.isLive){
+                        //     //call the appropriate broker service with new order
+                        //     const brokerService = this.brokerFactoryService.getBroker(ca['clientPartner']['partner']['name']);
+                        //     try {
+                        //         const brokerOrderResponse = await brokerService.placeOrder(ca['clientPartner']['partner'],ca['clientPartner'],newOrder);
+                        //         //update the order no and status
+                        //         await this.orderService.saveOrder({...newOrder, alertSecurityId: id, status:brokerOrderResponse.orderStatus, brokerOrderId:brokerOrderResponse.orderId});    
+                        //     } catch (error) {
+                        //         this.logger.log('error', error.response.data)   
+                        //     }
+                        // }
+                        // else
                             await this.orderService.saveOrder({...newOrder,alertSecurityId: id,});
                     }
                     else {
@@ -69,9 +74,9 @@ export class AlertProcessor {
                     }
                 }
             }
-            else {
-                if(order.transType == ca.alert.alertType){
-                    await this.orderService.saveOrder(this.buildRepeatOrder(ca,alertInfo,secInfo,order));
+            else { //open order available
+                if(order.transType === ca.alert.alertType){
+                        await this.orderService.saveOrder(this.buildRepeatOrder(ca,alertInfo,secInfo,order));
                 }
                 else {
                     await this.orderService.saveOrder({...order, status: 'CLOSE', exitQty: order.entryQty, exitPrice: alertInfo['price']});
@@ -90,15 +95,15 @@ export class AlertProcessor {
         end.setHours(duration['end'].split(':')[0], duration['end'].split(':')[1]);
         const current = new Date();
         
-        console.log('start: ',start);
-        console.log('curent: ',current);
-        console.log('end: ',end);
+        // console.log('start: ',start);
+        // console.log('curent: ',current);
+        // console.log('end: ',end);
         const tzadjusted = current.getTime() + (1000*60*60*5.5);//+5:30
         return tzadjusted >= start.getTime() && tzadjusted <= end.getTime() ;
         // return true;
     }
 
-    buildInitialOrder(ca: ClientAlert, alertInfo:any, secInfo: any): any {
+    buildEntryOrder(ca: ClientAlert, alertInfo:any, secInfo: any): any {
         const order = {
             clientAlert: ca,
             exchSegment: ca['config']['exchange']+'_'+ca['config']['segment'],
@@ -134,15 +139,19 @@ export class AlertProcessor {
     }
 
     buildRepeatOrder(ca: ClientAlert, alertInfo:any, secInfo: any, order: any): any {
+        console.log('building repeat order ...');
+        
         const buildPositions = ca['config']['entry']['position']['build'];
         const productType = ca['config']['entry']['productType'];
         if(productType === 'CNC' && buildPositions && buildPositions == true){
             const orderTransType = order['transType'];        
             const alertTransType = alertInfo['alert']['alertType'];
             if(orderTransType !== alertTransType) { //averaging
-
+                console.log('averaging...');
+                                    
             } else { //accumulating
-
+                console.log('accumulating...');
+                order['qty']
             }
         }
         //TODO: for INTRADAY and MTF
