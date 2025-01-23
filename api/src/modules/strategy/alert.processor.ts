@@ -1,12 +1,14 @@
 import { Inject, Injectable, LoggerService } from "@nestjs/common";
 import { WINSTON_MODULE_PROVIDER } from "nest-winston";
-import * as moment from "moment"; 
+import * as moment from 'moment-timezone';
 
 import { AlertService } from "../alert/alert.service";
 import { OrderService } from "../order/order.service";
 import { BrokerFactoryService } from "../broker/broker-factory.service";
 
 import { ClientAlert } from "src/entities/client-alert.entity";
+import { all } from "axios";
+import { DataService } from "../master/data.service";
 
 @Injectable()
 export class AlertProcessor {
@@ -14,12 +16,15 @@ export class AlertProcessor {
     constructor (@Inject(WINSTON_MODULE_PROVIDER) private readonly logger: LoggerService,
         private readonly alertService:AlertService, 
         private readonly orderService:OrderService, 
+        private readonly dataService:DataService, 
         private readonly brokerFactoryService:BrokerFactoryService){}
 
     async process(id: number) {
         this.logger.log('info',`Processing alert entry for ${id}`);
         const alertInfo = await this.alertService.findAlertSecurity(id);
+        
         this.logger.log('info',`Alert Security Info: ${JSON.stringify(alertInfo)}`);
+
         //get client alerts for the partner and alert
         const clientAlerts = await this.alertService.findClientAlerts(alertInfo['alert']['id']);
         
@@ -31,76 +36,61 @@ export class AlertProcessor {
         //   display_name: 'Macrotech Developers'
         // }
         clientAlerts.forEach(async (ca) => {
-            // console.log(ca);
-            
-            const secInfo = (await this.alertService.findSecurityMaster(ca['config']['exchange'], ca['config']['segment'], alertInfo.symbol))[0];
+            // const secInfo = (await this.alertService.findSecurityMaster(ca['config']['exchange'], ca['config']['segment'], alertInfo.symbol))[0];
             //get client order, if not exist create one
-            const order = await this.orderService.findOrder(ca['clientPartner']['clientId'], 
-                ca['config']['exchange'],ca['config']['segment'], alertInfo['symbol'], 'OPEN');
-            
-            if(!order){
-                if(ca['config']['entry']['productType'] !== 'INTRADAY' || 
-                    (ca['config']['entry']['productType'] === 'INTRADAY')){
-                        if(!this.isWithInConfiguredTimeWindow(ca['config']['entry']['intraday'])){
-                            this.logger.log('warn', 'INTRADAY time window not allowed');
-                            return;
+            //get the instrument type (equity, future, option)
+            const exchSegment = ca['config']['exchange']+'_'+ca['config']['segment'];
+            const expiry = '2025-01-30';//TODO: get the expiry date from the API
+            //call api to get the expiry dates if the segment is OPT
+            if(ca['config']['instrument'] === 'OPTSTK'){ 
+                const secInfo = (await this.dataService.getOptionSecurityId(ca['config']['exchange'],
+                    ca['config']['segment'], alertInfo['symbol'], expiry, alertInfo['price'], ca['config']['optionType']))[0];
+                const secId = secInfo['security_id'];
+                const qtyPerLot = secInfo['lot_size'];
+                console.log(`secId: ${secId}, qtyPerLot: ${qtyPerLot}`);
+                
+                 if(ca.isLive){
+                            //call the appropriate broker service with new order
+                            const brokerService = this.brokerFactoryService.getBroker(ca['clientPartner']['partner']['name']);
+                            try {
+                                const brokerOrderResponse = await brokerService.placeOrder(ca['clientPartner']['partner'],ca['clientPartner'],{
+                                    transType: ca['config']['position'],
+                                    exchSegment, 
+                                    productType: ca['config']['entry']['productType'], 
+                                    orderType: ca['config']['entry']['orderType'],
+                                    securityId: secId,
+                                    entryQty: qtyPerLot
+                                });
+                                //update the order no and status
+                                console.log(brokerOrderResponse);
+                                
+                                
+                            } catch (error) {
+                                this.logger.log('error', error.response.data)   
+                            }
                         }
-                    //create new order within time window
-                    //TODO: should figure out the entry price, stop loss and others based on config
-                        // ORDER LEG: 
-                        // entry price may be MARKET or LIMIT (close after some buffer of high of signal candle)
-                        // set the status to PENDING, if the LTP has not reached, if reached set to OPEN
-                        // SL LEG: exit price may be SL-M or SL-L, for example, SL trigger price may be below low of entry candle with some buffer, or if entry candle is long range, 50% of entry candle
-                        // set the status to PENDING, if the LTP reached it after the entry leg is OPEN, close SL leg
-                        // if the time of exit reached (for Intraday, 3:19 PM), close the open positions with LTP and cancel the SL leg, if they are still in pending
-                    const newOrder = this.buildEntryOrder(ca,alertInfo,secInfo);
-                    if(newOrder.entryQty > 0){
-                        // if(ca.isLive){
-                        //     //call the appropriate broker service with new order
-                        //     const brokerService = this.brokerFactoryService.getBroker(ca['clientPartner']['partner']['name']);
-                        //     try {
-                        //         const brokerOrderResponse = await brokerService.placeOrder(ca['clientPartner']['partner'],ca['clientPartner'],newOrder);
-                        //         //update the order no and status
-                        //         await this.orderService.saveOrder({...newOrder, alertSecurityId: id, status:brokerOrderResponse.orderStatus, brokerOrderId:brokerOrderResponse.orderId});    
-                        //     } catch (error) {
-                        //         this.logger.log('error', error.response.data)   
-                        //     }
-                        // }
-                        // else
-                            await this.orderService.saveOrder({...newOrder,alertSecurityId: id,});
-                    }
-                    else {
-                        this.logger.log('info', `Amount configured for new position is insufficient for ${order.symbol}`)
-                    }
-                }
             }
-            else { //open order available
-                if(order.transType === ca.alert.alertType){
-                        await this.orderService.saveOrder(this.buildRepeatOrder(ca,alertInfo,secInfo,order));
-                }
-                else {
-                    await this.orderService.saveOrder({...order, status: 'CLOSE', exitQty: order.entryQty, exitPrice: alertInfo['price']});
-                }
-                //if the alert type (BUY/SELL) is same as existing order, repeat (if configured)
-                //otherwise, if configured to exit position by alert, close the position
-            }
+            
+
+           
       });
     }
 
-    isWithInConfiguredTimeWindow(duration: any) {
-        
-        const start = new Date();
-        start.setHours(duration['begin'].split(':')[0], duration['begin'].split(':')[1]);
-        const end = new Date();
-        end.setHours(duration['end'].split(':')[0], duration['end'].split(':')[1]);
-        const current = new Date();
-        
-        // console.log('start: ',start);
-        // console.log('curent: ',current);
-        // console.log('end: ',end);
-        const tzadjusted = current.getTime() + (1000*60*60*5.5);//+5:30
-        return tzadjusted >= start.getTime() && tzadjusted <= end.getTime() ;
-        // return true;
+    isTimeWithinWindow(inputTime, timeRange) {
+        const startTime = timeRange['begin'];
+        const endTime = timeRange['end'];
+        // Parse the input times
+        const [inputHours, inputMinutes] = inputTime.split(':').map(Number);
+        const [startHours, startMinutes] = startTime.split(':').map(Number);
+        const [endHours, endMinutes] = endTime.split(':').map(Number);
+    
+        // Convert the times into minutes since midnight for comparison
+        const inputTotalMinutes = inputHours * 60 + inputMinutes;
+        const startTotalMinutes = startHours * 60 + startMinutes;
+        const endTotalMinutes = endHours * 60 + endMinutes;
+    
+        // Check if the input time is within the window
+        return inputTotalMinutes >= startTotalMinutes && inputTotalMinutes <= endTotalMinutes;
     }
 
     buildEntryOrder(ca: ClientAlert, alertInfo:any, secInfo: any): any {

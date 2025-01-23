@@ -15,8 +15,10 @@ export class AlertConsumer implements OnModuleInit{
   constructor(private readonly configService:ConfigService, 
     @Inject(WINSTON_MODULE_PROVIDER) private readonly logger: LoggerService,
     private readonly processor: AlertProcessor) {
-    const connection = amqp.connect([this.configService.get('MESSAGE_URL')]);
-    this.channelWrapper = connection.createChannel();
+      const url = this.configService.get('MESSAGE_URL');
+      const connection = amqp.connect([url]);
+      this.logger.log('info',`Connected to message broker at ${url}`);
+      this.channelWrapper = connection.createChannel();
   }
 
   public async onModuleInit() {
@@ -26,7 +28,7 @@ export class AlertConsumer implements OnModuleInit{
         await channel.consume(AlertConsumer.ALERT_QUEUE, async (message) => {
           if (message) {
             const content = JSON.parse(message.content.toString());
-            this.logger.log('info','Received message:', content);
+            this.logger.log('info',`Received ${content}`);
             this.processor.process(content);
             channel.ack(message);
           }

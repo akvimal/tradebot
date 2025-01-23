@@ -10,7 +10,7 @@ export class DhanBrokerService implements BrokerService {
     constructor (private readonly apiService: ApiService,
         @Inject(WINSTON_MODULE_PROVIDER) private readonly logger: LoggerService) {}
 
-    async placeOrder(brokerInfo: any, brokerClientInfo:any, order: Order): Promise<any> {
+    async placeOrder(brokerInfo: any, brokerClientInfo:any, order: any): Promise<any> {
         this.logger.log('info',`Order placed: ${JSON.stringify(order)}`);
         let response = null;
        try {
@@ -26,7 +26,7 @@ export class DhanBrokerService implements BrokerService {
         
     }
 
-    buildOrderRequest(clientId:any, order:Order){
+    buildOrderRequest(clientId:any, order:any){
         const brokerOrder = {
             "dhanClientId": clientId,
             "transactionType":order['transType'],

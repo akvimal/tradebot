@@ -1,0 +1,27 @@
+
+<div class="row mt-2 p-2" style="background:#dea;">
+    <div class="col-12">
+        <!-- <button class="btn btn-outline-secondary" (click)="openNewForm()" *ngIf="!newForm">Upload</button> -->
+        <!-- <div *ngIf="newForm"> -->
+            <h4>Upload</h4>
+            <div class="d-flex">
+                <input class="form-control" type="file" (change)="onChange($event)">&nbsp;&nbsp;
+                <input type="text" class="form-control" [(ngModel)]="alias" placeholder="Name">
+            </div>
+            <button (click)="onUpload()" [disabled]="!isFormValid()" class="btn btn-success">Upload</button>
+        <!-- </div> -->
+    </div>
+</div>
+<div class="row mt-2 p-2">
+    <div class="col-2">
+        <ul>
+            <li *ngFor="let a of alerts" (click)="showAlert(a.id)">
+                {{a.alert_name}}</li>
+        </ul>
+    </div>
+    <div class="col-10">
+        Name:{{alert?.alert_name}}
+        <ul><li *ngFor="let s of alert?.alert_signals"><label style="width: 120px;">{{s.date}}</label>{{s.symbol}}</li></ul>
+        
+    </div>
+</div>

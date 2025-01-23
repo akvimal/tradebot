@@ -37,6 +37,10 @@ import { PassportModule } from '@nestjs/passport';
 import { JwtModule } from '@nestjs/jwt';
 import { JwtStrategy } from './modules/app/auth/auth.strategy';
 import { SignalController } from './modules/alert/signal.controller';
+import { BacktestController } from './modules/backtest/backtest.controller';
+import { MulterModule } from '@nestjs/platform-express';
+import { BacktestService } from './modules/backtest/backtest.service';
+import { DataService } from './modules/master/data.service';
 
 @Module({
   imports: [
@@ -81,11 +85,15 @@ import { SignalController } from './modules/alert/signal.controller';
       useClass: TypeOrmConfigService,
     }),
     TypeOrmModule.forFeature([Client,Partner,Alert,AlertSecurity,ClientAlert,ClientOrder,AppUser]),
-    HttpModule
+    HttpModule,
+    MulterModule.register({
+      dest: './uploads'
+    })
   ],
-  controllers: [AuthController, SignalController, AlertController, BrokerController, OrdersController],
+  controllers: [AuthController, SignalController, AlertController, BrokerController, OrdersController,BacktestController],
   providers: [AuthService, AuthHelper, ApiService, BrokerFactoryService, DhanBrokerService, RabbitMQService, 
-    AlertConsumer, AlertProcessor, AlertService, FeedbackConsumer, FeedbackProcessor, OrderService, ClientService, JwtStrategy],
+    AlertConsumer, AlertProcessor, AlertService, FeedbackConsumer, 
+    FeedbackProcessor, OrderService, ClientService, JwtStrategy, BacktestService, DataService],
   exports: []
 })
 export class AppModule {}

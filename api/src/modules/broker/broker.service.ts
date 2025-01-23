@@ -1,7 +1,7 @@
 import { Order } from "src/modules/shared/order.model";
 
 export interface BrokerService {
-    placeOrder(brokerInfo:any,brokerClientInfo:any, order: Order);   
+    placeOrder(brokerInfo:any,brokerClientInfo:any, order: any);   
     getOrder(orderId: string): Promise<any>;
     modifyOrder(order: Order): Promise<any>;
     cancelOrder(orderId: string): Promise<any>;
