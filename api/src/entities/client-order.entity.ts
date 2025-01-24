@@ -34,7 +34,7 @@ export class ClientOrder {
   entryPrice?: number;
 
   @Column("double precision", { name: "exit_qty", precision: 53 })
-  exitQty: number;
+  exitQty?: number;
   @Column("double precision", { name: "exit_price", precision: 53 })
   exitPrice?: number;
   
@@ -49,6 +49,8 @@ export class ClientOrder {
   correlationId?: string;
   @Column("character varying", { name: "status" })
   status?: string;
+  @Column("character varying", { name: "comments" })
+  comments?: string;
   @Column("date", { name: "created_on"})
   createdOn?: string | null;
   @Column("date", { name: "updated_on"})

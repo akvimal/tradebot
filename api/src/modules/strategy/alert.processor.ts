@@ -63,9 +63,18 @@ export class AlertProcessor {
                                 });
                                 //update the order no and status
                                 console.log(brokerOrderResponse);
-                                
+                                this.orderService.saveOrder({clientAlertId: ca['id'], 
+                                    alertSecurityId: id,exchSegment: exchSegment, 
+                                    securityId: secId, symbol: alertInfo['symbol'],transType: ca['config']['position'],entryQty: qtyPerLot,
+                                    productType: ca['config']['entry']['productType'], orderType: ca['config']['entry']['orderType'],
+                                    brokerOrderId: brokerOrderResponse['orderId'],status: brokerOrderResponse['orderStatus']});
                                 
                             } catch (error) {
+                                console.log('>>>>>>',error.response.data);
+                                this.orderService.saveOrder({clientAlertId: ca['id'], 
+                                    alertSecurityId: id,exchSegment: exchSegment, 
+                                    securityId: secId, symbol: alertInfo['symbol'],transType: ca['config']['position'],entryQty: qtyPerLot,
+                                    productType: ca['config']['entry']['productType'], orderType: ca['config']['entry']['orderType'],status: 'ERROR',comments: `${error.response.data['errorCode']}:${error.response.data['errorMessage']}`});
                                 this.logger.log('error', error.response.data)   
                             }
                         }

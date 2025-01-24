@@ -9,9 +9,15 @@ export class FeedbackProcessor {
         private readonly orderService:OrderService){}
 
     async process(content: any) {
-        // this.logger.log('info', `Processing feedback: ${JSON.stringify(content)}`)
+        this.logger.log('info', `Processing feedback: ${JSON.stringify(content)}`);
         //get correlationId, orderId, filled_qty and orderStatus
-        await this.orderService.updateOrder(content['orderId'],content['filled_qty'],content['price'],content['orderStatus'],content['correlationId']);
-        this.logger.log('info', `Updated order`)
+        try {
+            await this.orderService.updateOrder(content['orderId'],content['quantity'],
+                content['price'],content['orderStatus'],content['correlationId'],'Broker Postback updated');    
+        } catch (error) {
+            this.logger.log('info', `Unable to update order ${content['orderId']} with status ${content['orderStatus']}`);    
+        }
+        
+        this.logger.log('info', `Updated order ${content['orderId']} with status ${content['orderStatus']}`);
     }
 }
