@@ -2,7 +2,6 @@ const reader = require('xlsx');
 const csv = require('csv-parser');
 const { Pool } = require('pg');
 const fs = require('fs');
-const { get } = require('http');
 
 const pool = new Pool({
     user: 'postgres',
