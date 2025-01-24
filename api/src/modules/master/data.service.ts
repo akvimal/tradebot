@@ -12,16 +12,15 @@ export class DataService {
 
     async getOptionSecurityId(exchange: string, segment:string, 
         symbol: string, expiry:string,
-        strikePrice: number, optionType: string) {
-        
+        strikePrice: number, optionType: string, itm: boolean) {
         let sql = `
         select security_id, strike_price::numeric, lot_size 
         from security_master where underlying_symbol like '${symbol}-${moment(expiry).format('MMMYYYY')}%' 
         and exch_id = '${exchange}'
         and segment = '${segment}'
         and option_type = '${optionType}'
-        and (strike_price::numeric - ${strikePrice}) ${optionType=='PE'?'>':'<'} 0
-        order by strike_price ${optionType=='CE'?'desc':''} limit 1`
+        and (strike_price::numeric - ${strikePrice}) ${optionType=='PE'?(itm?'>':'<'):(itm?'<':'>')} 0
+        order by strike_price ${optionType=='CE'?(itm?'desc':''):(itm?'':'desc')} limit 5`
         return this.manager.query(sql);
     }
 

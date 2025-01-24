@@ -44,12 +44,17 @@ export class AlertProcessor {
             //call api to get the expiry dates if the segment is OPT
             if(ca['config']['instrument'] === 'OPTSTK'){ 
                 const secInfo = (await this.dataService.getOptionSecurityId(ca['config']['exchange'],
-                    ca['config']['segment'], alertInfo['symbol'], expiry, alertInfo['price'], ca['config']['optionType']))[0];
-                const secId = secInfo['security_id'];
-                const qtyPerLot = secInfo['lot_size'];
+                    ca['config']['segment'], alertInfo['symbol'], expiry, alertInfo['price'], ca['config']['optionType'],false));
+                    const strikesFromATM = 5;
+                const secId = secInfo[strikesFromATM-1]['security_id'];
+                const qtyPerLot = secInfo[strikesFromATM-1]['lot_size'];
+                
                 console.log(`secId: ${secId}, qtyPerLot: ${qtyPerLot}`);
+                // console.log(secInfo);
+                
                 
                  if(ca.isLive){
+                    // if(false){
                             //call the appropriate broker service with new order
                             const brokerService = this.brokerFactoryService.getBroker(ca['clientPartner']['partner']['name']);
                             try {
@@ -79,9 +84,6 @@ export class AlertProcessor {
                             }
                         }
             }
-            
-
-           
       });
     }
 
